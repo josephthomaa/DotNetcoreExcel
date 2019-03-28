@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using OfficeOpenXml;
+using TestApp.Test;
 namespace TestApp
 {
     class Program
@@ -11,18 +12,36 @@ namespace TestApp
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
+            AddressData addressData = new AddressData();
             string path = AppDomain.CurrentDomain.BaseDirectory;
-            string saveLocation = Path.GetFullPath(Path.Combine(path, @"..\..\..\Test\Test.xlsx"));
+            string saveLocation = Path.GetFullPath(Path.Combine(path, @"..\..\..\Test\AddressData.xlsx"));
             Console.WriteLine(saveLocation);
             Console.WriteLine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
-            var dtContent = GetDataTableFromExcel(saveLocation);
-            foreach (DataRow dr in dtContent.Rows)
+            string[] worksheets = {"US", "Canada", "Germany"};
+            foreach(string worksheet in worksheets)
             {
-                Console.WriteLine(dr["Key"].ToString()+" "+ dr["Company"].ToString());
+                var dtContent = GetDataTableFromExcel(saveLocation, worksheet);
+
+                foreach (DataRow dr in dtContent.Rows)
+                {
+                    addressData.Name = dr["Name"].ToString();
+                    addressData.Street = dr["Street"].ToString();
+                    addressData.Street1 = dr["Street1"].ToString();
+                    addressData.Street2 = dr["Street2"].ToString();
+                    addressData.City = dr["City"].ToString();
+                    addressData.Country = dr["Country"].ToString();
+                    addressData.State = dr["State"].ToString();
+                    addressData.Zipcode = dr["Zipcode"].ToString();
+                    addressData.Telephone = dr["Telephone"].ToString();
+                    addressData.VAT = dr["VAT"].ToString();
+                    Console.WriteLine(dr["Name"].ToString() + " " + dr["State"].ToString());
+
+                }
             }
+           
             Console.ReadLine();
         }
-        private static DataTable GetDataTableFromExcel(string path, bool hasHeader = true)
+        private static DataTable GetDataTableFromExcel(string path,string sheetName, bool hasHeader = true)
         {
             using (var pck = new OfficeOpenXml.ExcelPackage())
             {
@@ -32,7 +51,7 @@ namespace TestApp
                 }
                 int count = pck.Workbook.Worksheets.Count;
                 Console.WriteLine(count);
-                var ws = pck.Workbook.Worksheets["US"];
+                var ws = pck.Workbook.Worksheets[sheetName];
                 DataTable tbl = new DataTable();
                 foreach (var firstRowCell in ws.Cells[1, 1, 1, ws.Dimension.End.Column])
                 {
